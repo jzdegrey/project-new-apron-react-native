@@ -1,50 +1,78 @@
 /**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
  * @format
  */
 
-import { useEffect } from 'react';
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import {
   SafeAreaProvider,
-  useSafeAreaInsets,
+  SafeAreaView,
 } from 'react-native-safe-area-context';
+import { ToastProvider } from './src/components/Toast';
+import { AuthScreen } from './src/screens/AuthScreen';
+import { WelcomeScreen } from './src/screens/WelcomeScreen';
 import { logger } from './src/lib/logger';
+import { clearToken, loadToken, saveToken } from './src/lib/tokenStorage';
 
 function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  useEffect(() => {
-    logger.info('App mounted');
-  }, []);
-
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
+      <StatusBar barStyle="dark-content" />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </SafeAreaProvider>
   );
 }
 
 function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
+  const [token, setToken] = useState<string | null>(null);
+  const [restoringSession, setRestoringSession] = useState(true);
+
+  useEffect(() => {
+    logger.info('App mounted');
+    loadToken()
+      .then(setToken)
+      .finally(() => setRestoringSession(false));
+  }, []);
+
+  async function handleAuthenticated(accessToken: string) {
+    await saveToken(accessToken);
+    setToken(accessToken);
+  }
+
+  async function handleSignOut() {
+    await clearToken();
+    setToken(null);
+  }
+
+  if (restoringSession) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
+    <SafeAreaView style={styles.container}>
+      {token ? (
+        <WelcomeScreen token={token} onSignOut={handleSignOut} />
+      ) : (
+        <AuthScreen onAuthenticated={handleAuthenticated} />
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
