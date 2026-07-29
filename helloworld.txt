@@ -1,7 +1,0 @@
-Hello, World! 📱🍲
-
-This is the React Native app for Project New Apron — meal planning and
-recipe sharing, right in your pocket, for iOS and Android alike.
-
-No screens yet, just this friendly little text file saying:
-the app is preheating. Tap in again soon for the full recipe.
