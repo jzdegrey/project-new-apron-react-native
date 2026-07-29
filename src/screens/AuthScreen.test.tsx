@@ -5,10 +5,10 @@ import { ToastProvider } from '../components/Toast';
 
 const onAuthenticated = jest.fn();
 
-async function renderAuthScreen() {
+async function renderAuthScreen(props: Partial<React.ComponentProps<typeof AuthScreen>> = {}) {
   return render(
     <ToastProvider>
-      <AuthScreen onAuthenticated={onAuthenticated} />
+      <AuthScreen onAuthenticated={onAuthenticated} {...props} />
     </ToastProvider>,
   );
 }
@@ -143,5 +143,28 @@ describe('AuthScreen - create account mode', () => {
     await fireEvent.press(switchModeButton());
 
     expect(screen.getByLabelText('Sign up for email updates').props.value).toBe(true);
+  });
+});
+
+describe('AuthScreen - initialMode and onBack', () => {
+  it('opens in create-account mode when initialMode is set', async () => {
+    await renderAuthScreen({ initialMode: 'create-account' });
+
+    expect(screen.getByRole('header').props.children).toBe('Create Account');
+  });
+
+  it('does not render a back button when onBack is not provided', async () => {
+    await renderAuthScreen();
+
+    expect(screen.queryByTestId('auth-back-button')).toBeNull();
+  });
+
+  it('calls onBack when the back button is pressed', async () => {
+    const onBack = jest.fn();
+    await renderAuthScreen({ onBack });
+
+    await fireEvent.press(screen.getByTestId('auth-back-button'));
+
+    expect(onBack).toHaveBeenCalled();
   });
 });
