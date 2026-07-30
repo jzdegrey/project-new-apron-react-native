@@ -10,9 +10,12 @@ import {
 } from 'react-native-safe-area-context';
 import { ToastProvider } from './src/components/Toast';
 import { AuthScreen } from './src/screens/AuthScreen';
+import { LandingScreen } from './src/screens/LandingScreen';
 import { WelcomeScreen } from './src/screens/WelcomeScreen';
 import { logger } from './src/lib/logger';
 import { clearToken, loadToken, saveToken } from './src/lib/tokenStorage';
+
+type UnauthenticatedView = 'landing' | 'sign-in' | 'create-account';
 
 function App() {
   return (
@@ -28,6 +31,7 @@ function App() {
 function AppContent() {
   const [token, setToken] = useState<string | null>(null);
   const [restoringSession, setRestoringSession] = useState(true);
+  const [view, setView] = useState<UnauthenticatedView>('landing');
 
   useEffect(() => {
     logger.info('App mounted');
@@ -44,6 +48,7 @@ function AppContent() {
   async function handleSignOut() {
     await clearToken();
     setToken(null);
+    setView('landing');
   }
 
   if (restoringSession) {
@@ -54,13 +59,28 @@ function AppContent() {
     );
   }
 
+  function renderUnauthenticated() {
+    if (view === 'landing') {
+      return (
+        <LandingScreen
+          onSignIn={() => setView('sign-in')}
+          onCreateAccount={() => setView('create-account')}
+        />
+      );
+    }
+
+    return (
+      <AuthScreen
+        initialMode={view}
+        onAuthenticated={handleAuthenticated}
+        onBack={() => setView('landing')}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      {token ? (
-        <WelcomeScreen token={token} onSignOut={handleSignOut} />
-      ) : (
-        <AuthScreen onAuthenticated={handleAuthenticated} />
-      )}
+      {token ? <WelcomeScreen token={token} onSignOut={handleSignOut} /> : renderUnauthenticated()}
     </SafeAreaView>
   );
 }

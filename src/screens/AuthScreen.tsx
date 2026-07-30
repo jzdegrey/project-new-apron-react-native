@@ -82,11 +82,13 @@ function validateSignInForm(form: FormState): FieldErrors {
 
 interface AuthScreenProps {
   onAuthenticated: (token: string) => void;
+  initialMode?: Mode;
+  onBack?: () => void;
 }
 
-export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
+export function AuthScreen({ onAuthenticated, initialMode = 'sign-in', onBack }: AuthScreenProps) {
   const { showToast } = useToast();
-  const [mode, setMode] = useState<Mode>('sign-in');
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [form, setForm] = useState<FormState>(INITIAL_STATE);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -141,6 +143,15 @@ export function AuthScreen({ onAuthenticated }: AuthScreenProps) {
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      {onBack && (
+        <TouchableOpacity
+          onPress={onBack}
+          accessibilityRole="button"
+          testID="auth-back-button">
+          <Text style={styles.backText}>{'‹'} Back</Text>
+        </TouchableOpacity>
+      )}
+
       <Text style={styles.heading} accessibilityRole="header">
         {mode === 'sign-in' ? 'Sign In' : 'Create Account'}
       </Text>
@@ -288,6 +299,10 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 24,
     fontWeight: '700',
+  },
+  backText: {
+    color: '#0070f3',
+    fontSize: 15,
   },
   switchRow: {
     flexDirection: 'row',
