@@ -33,9 +33,13 @@ React Native code for Project New Apron — a React Native (TypeScript) mobile a
 
 ## Project structure
 
-- `App.tsx` / `index.js` — app entry point; switches between `AuthScreen`
-  and `WelcomeScreen` based on whether a session token is stored
-- `src/screens/AuthScreen.tsx` — combined sign-in / create-account screen
+- `App.tsx` / `index.js` — app entry point; when there's no session token it
+  shows `LandingScreen` and then `AuthScreen`, otherwise `WelcomeScreen`
+- `src/screens/LandingScreen.tsx` — public front/splash screen (wordmark,
+  tagline, and Sign In / Create Account CTAs)
+- `src/screens/AuthScreen.tsx` — combined sign-in / create-account screen;
+  accepts an `initialMode` (which CTA was tapped on `LandingScreen`) and an
+  optional `onBack` to return to it
 - `src/screens/WelcomeScreen.tsx` — post-sign-in confirmation screen
 - `src/components` — shared components (`PasswordField`, `LabeledInput`, `Toast`)
 - `src/lib/validation.ts` — client-side field validation mirroring the
@@ -51,12 +55,14 @@ React Native code for Project New Apron — a React Native (TypeScript) mobile a
 
 ## Authentication
 
-Sign-in and account creation share one screen that toggles between the two
-modes (mirroring the web frontend's flow). On success, the backend's JWT is
-stored in the platform Keychain/Keystore (not `AsyncStorage`, which is
-unencrypted) so it can't be casually read off the device, and the app
-switches to `WelcomeScreen`. `WelcomeScreen` verifies the stored token
-against the backend on mount and signs the user out if it's no longer valid.
+Unauthenticated users land on `LandingScreen` first. Tapping either CTA opens
+`AuthScreen` pre-set to the matching mode; sign-in and account creation share
+that one screen, toggling between the two modes (mirroring the web
+frontend's flow). On success, the backend's JWT is stored in the platform
+Keychain/Keystore (not `AsyncStorage`, which is unencrypted) so it can't be
+casually read off the device, and the app switches to `WelcomeScreen`.
+`WelcomeScreen` verifies the stored token against the backend on mount and
+signs the user out (back to `LandingScreen`) if it's no longer valid.
 
 ## Configuration
 

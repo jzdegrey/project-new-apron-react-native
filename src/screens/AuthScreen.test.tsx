@@ -145,3 +145,32 @@ describe('AuthScreen - create account mode', () => {
     expect(screen.getByLabelText('Sign up for email updates').props.value).toBe(true);
   });
 });
+
+describe('AuthScreen - initialMode and onBack', () => {
+  it('starts in create-account mode when initialMode is create-account', async () => {
+    await render(
+      <ToastProvider>
+        <AuthScreen onAuthenticated={onAuthenticated} initialMode="create-account" />
+      </ToastProvider>,
+    );
+
+    expect(screen.getByRole('header').props.children).toBe('Create Account');
+  });
+
+  it('does not render a back button when onBack is not provided', async () => {
+    await renderAuthScreen();
+    expect(screen.queryByTestId('auth-back-button')).toBeNull();
+  });
+
+  it('renders a back button that calls onBack when pressed', async () => {
+    const onBack = jest.fn();
+    await render(
+      <ToastProvider>
+        <AuthScreen onAuthenticated={onAuthenticated} onBack={onBack} />
+      </ToastProvider>,
+    );
+
+    await fireEvent.press(screen.getByTestId('auth-back-button'));
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
+});
